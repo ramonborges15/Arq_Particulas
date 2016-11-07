@@ -24,14 +24,21 @@ struct particula{
 //Declaracao de funcoes
 void calculo_fresultante_particula(struct particula *particulas, long int qtde_particulas);
 void calculo_forca_bruta(struct particula *particulas, float *forcas_x, float *forcas_y, long int atual, long int outra);
+struct particula* ler_dados(long int *qtde_particulas);
 
 //Funcao principal
 int main() {
     //Recebendo dados do txt
 
-    long int qtde_particulas;
-    //Declarando struct particula e alocando memoria.
-    struct particula *particulas = (struct particula *) malloc(qtde_particulas * sizeof(struct particula));
+    long int qtde_particulas = 0;
+    //Declarando struct particula.
+    struct particula *particulas;
+
+    //Lendo dados do arquivo de entrada e atualizando struct particula.
+    particulas = ler_dados(&qtde_particulas);
+
+    //printf("%f %f %f\n", particulas[1].massa, particulas[1].posicao_x, particulas[1].posicao_y);
+    //printf("Quantidade particulas: %li\n", qtde_particulas);
 
     // Calculo e atualizacao dos parametros de cada particula
     calculo_fresultante_particula(particulas, qtde_particulas);
@@ -40,24 +47,37 @@ int main() {
 }
 
 //Lendo dados de arquivo de entrada
-void ler_dados(){
+struct particula* ler_dados(long int *qtde_particulas){
     float duracao;
+    float massa, posx, posy, velx, vely;
     unsigned qtde_intervalos;
     FILE *fp;
-    fp = fopen("input.txt", "r");
 
+    fp = fopen("input.txt", "r");
     if(!fp) {
         printf("Erro na abertura!\n");
         exit(0);
     }
+
+    struct particula *particulas = (struct particula *) malloc(sizeof(struct particula));
+
     //Salvando qtde de intervalos e duracao de cada intervalo
     fscanf(fp, "%u %f\n", &qtde_intervalos, &duracao);
     //
-    while ((fscanf(arq, "%f %f  %f  %f", &massa, &posx, &posy, &velx, &vely)) != EOF) {
-
+    while ((fscanf(fp, "%f  %f  %f  %f  %f", &massa, &posx, &posy, &velx, &vely)) != EOF) {
+        (*qtde_particulas)++;
+        //Realoca o tamanho do vetor para quantidade atual de particulas
+        particulas = (struct particula *) realloc(particulas, (*qtde_particulas)* sizeof(struct particula));
+        //Preenche a struct com os valores do arquivo de entrada.
+        particulas[(*qtde_particulas)-1].massa = massa;
+        particulas[(*qtde_particulas)-1].posicao_x = posx;
+        particulas[(*qtde_particulas)-1].posicao_y = posy;
+        particulas[(*qtde_particulas)-1].velocidade_x = velx;
+        particulas[(*qtde_particulas)-1].velocidade_y = vely;
     }
 
     fclose(fp);
+    return particulas;
 }
 
 /* Forca gravitacional de todas as particulas sobre uma unica particula e
@@ -77,9 +97,11 @@ void calculo_fresultante_particula(struct particula *particulas, long int qtde_p
         }
 
         // Calculando forca resultante total na particula
-        fresultante_total = sqrt(pow(forcas_x,2) + pow(forcas_y,2));
+        fresultante_total = sqrt( ( pow (forcas_x,2) ) + ( pow(forcas_y,2) ) );
         //Calculando aceleracao
         aceleracao = fresultante_total / particulas[atual_partic].massa;
+
+        printf("%liª Partícula: F. resultante = %f, aceleracao = %f\n", atual_partic+1, fresultante_total, aceleracao);
         //Calcular velocidades em x e y, e atualizar.
 
         //Calcular nova posicao_x e posicao_y
